@@ -73,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         mainBinding.btnSeven.setOnClickListener{
-            onNumberClicked("8")
+            onNumberClicked("7")
         }
 
         mainBinding.btnEight.setOnClickListener{
