@@ -91,7 +91,7 @@ class MainActivity : AppCompatActivity() {
         mainBinding.btnDelete.setOnClickListener{
 
             number?.let{
-                if (it.length==1){
+                if (it.length<=1){
                     aC()
                 }
              number=it.substring(0,it.length-1)
@@ -105,7 +105,8 @@ class MainActivity : AppCompatActivity() {
             history = mainBinding.textViewHistory.text.toString()
             currentResult =  mainBinding.textViewResult.text.toString()
 
-            mainBinding.textViewHistory.text = history.plus(currentResult).plus("/")
+            if(status=="equals") operator =true
+
 
             if (operator){
                 when(status){
@@ -115,6 +116,7 @@ class MainActivity : AppCompatActivity() {
                     "minus"->Minus()
                     else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
                 }
+                mainBinding.textViewHistory.text = history.plus("/")
             }
             status="Div"
             operator=false
@@ -127,7 +129,8 @@ class MainActivity : AppCompatActivity() {
             history = mainBinding.textViewHistory.text.toString()
             currentResult =  mainBinding.textViewResult.text.toString()
 
-            mainBinding.textViewHistory.text = history.plus(currentResult).plus("*")
+            if(status=="equals") operator =true
+
             if (operator){
                 when(status){
                     "Mul"->Mul()
@@ -136,6 +139,7 @@ class MainActivity : AppCompatActivity() {
                     "minus"->Minus()
                     else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
                 }
+                mainBinding.textViewHistory.text = history.plus("*")
             }
             status="Mul"
             operator=false
@@ -148,7 +152,8 @@ class MainActivity : AppCompatActivity() {
             history = mainBinding.textViewHistory.text.toString()
             currentResult =  mainBinding.textViewResult.text.toString()
 
-            mainBinding.textViewHistory.text = history.plus(currentResult).plus("-")
+            if(status=="equals") operator =true
+
             if (operator){
                 when(status){
                     "Mul"->Mul()
@@ -157,6 +162,7 @@ class MainActivity : AppCompatActivity() {
                     "minus"->Minus()
                     else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
                 }
+                mainBinding.textViewHistory.text = history.plus("-")
             }
             status="minus"
             operator=false
@@ -169,15 +175,18 @@ class MainActivity : AppCompatActivity() {
             history = mainBinding.textViewHistory.text.toString()
             currentResult =  mainBinding.textViewResult.text.toString()
 
-            mainBinding.textViewHistory.text = history.plus(currentResult).plus("+")
+            if(status=="equals") operator =true
+
             if (operator){
                 when(status){
                     "Mul"->Mul()
                     "Div"->Divide()
                     "plus"->add()
                     "minus"->Minus()
+
                     else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
                 }
+                mainBinding.textViewHistory.text = history.plus("+")
             }
             status="plus"
             operator=false
@@ -197,6 +206,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         mainBinding.btnEquals.setOnClickListener{
+
             history = mainBinding.textViewHistory.text.toString()
             currentResult =  mainBinding.textViewResult.text.toString()
 
@@ -208,10 +218,12 @@ class MainActivity : AppCompatActivity() {
                     "Div"->Divide()
                     "plus"->add()
                     "minus"->Minus()
+                    "equals"-> mainBinding.textViewHistory.text = history
                     else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
                 }
-                mainBinding.textViewHistory.text = history.plus(currentResult).plus("=").plus(mainBinding.textViewResult.text.toString())
+                mainBinding.textViewHistory.text = history.plus("=").plus(mainBinding.textViewResult.text.toString())
             }
+            status = "equals"
             operator=false
             dotControll=true
         }
@@ -219,13 +231,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onNumberClicked (clickedNum : String){
-        if(number==null){
-            number = clickedNum
-        }else number+=clickedNum
+        if (status!="equals") {
+            history = mainBinding.textViewHistory.text.toString()
+            currentResult = clickedNum
+            if (number == null) {
+                number = clickedNum
+            } else number += clickedNum
 
-        mainBinding.textViewResult.text = number
+            mainBinding.textViewResult.text = number
+            mainBinding.textViewHistory.text = history.plus(clickedNum)
 
-        operator = true
+            operator = true
+        }
     }
 
 
@@ -262,6 +279,7 @@ class MainActivity : AppCompatActivity() {
 
         if (lastNumber==0.0) {
             Toast.makeText(applicationContext,"YOU are Gay",Toast.LENGTH_LONG).show()
+            mainBinding.textViewResult.text = "can't divide by zero retard, also u gay"
             return
         }
 
@@ -281,4 +299,6 @@ class MainActivity : AppCompatActivity() {
         dotControll=true
 
     }
+
+
 }
