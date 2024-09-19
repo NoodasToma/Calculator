@@ -24,13 +24,15 @@ class MainActivity : AppCompatActivity() {
 
     var status:String? = null
 
-    var operator:Boolean = false
+    var operator:Boolean = true
 
     var history : String = ""
 
     var currentResult : String = ""
 
     var dotControll : Boolean = true
+
+    var onStart:Boolean= true
 
 
     @SuppressLint("NewApi")
@@ -51,6 +53,8 @@ class MainActivity : AppCompatActivity() {
 
 
         mainBinding.textViewResult.text = "0"
+        mainBinding.textViewHistory.text="0"
+
 
         mainBinding.btnZero.setOnClickListener{
             onNumberClicked("0")
@@ -91,120 +95,160 @@ class MainActivity : AppCompatActivity() {
         }
 
         mainBinding.btnDelete.setOnClickListener{
+            history = mainBinding.textViewHistory.text.toString()
 
-            number?.let{
-                if(it.length==0){
-                    mainBinding.textViewResult.text = "Cant delete anymore you fat lesbian"
-                }
-                if (it.length==1){
+            if (status=="equals") {
+
+
                     aC()
+//                    number = null
+
+
+            }else {
+
+                number?.let {
+
+
+                    number = it.substring(0, it.length - 1)
+                    mainBinding.textViewResult.text = number
+                    mainBinding.textViewHistory.text = history.substring(0, history.length - 1)
+                    dotControll = !number!!.contains(".")
+                    if (it.length==1) number=null
                 }
-             number=it.substring(0,it.length-1)
-             mainBinding.textViewResult.text=number
-             dotControll = !number!!.contains(".")
-          }
+                if (number==null){
+
+                }
+                if (!operator){
+                    firstNumber = 0.0
+                    mainBinding.textViewHistory.text = history.substring(0, history.length - 1)
+                    operator=true
+                }
+            }
         }
 
         mainBinding.btnDivive.setOnClickListener{
 
-            history = mainBinding.textViewHistory.text.toString()
-            currentResult =  mainBinding.textViewResult.text.toString()
-
-            if(status=="equals") operator =true
 
 
-            if (operator){
-                when(status){
-                    "Mul"->Mul()
-                    "Div"->Divide()
-                    "plus"->add()
-                    "minus"->Minus()
-                    else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
+                history = mainBinding.textViewHistory.text.toString()
+                currentResult = mainBinding.textViewResult.text.toString()
+
+                if (status == "equals") {
+                    operator = true
+                    history = onEqualDelete()
                 }
-                mainBinding.textViewHistory.text = history.plus("/")
-            }
-            status="Div"
-            operator=false
-            number=null
-            dotControll=true
+
+
+                if (operator) {
+                    when (status) {
+                        "Mul" -> Mul()
+                        "Div" -> Divide()
+                        "plus" -> add()
+                        "minus" -> Minus()
+                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
+                    }
+                    mainBinding.textViewHistory.text = history.plus("/")
+                }
+                status = "Div"
+                operator = false
+                number = null
+                dotControll = true
+
 
         }
 
         mainBinding.btnMul.setOnClickListener{
-            history = mainBinding.textViewHistory.text.toString()
-            currentResult =  mainBinding.textViewResult.text.toString()
 
-            if(status=="equals") operator =true
 
-            if (operator){
-                when(status){
-                    "Mul"->Mul()
-                    "Div"->Divide()
-                    "plus"->add()
-                    "minus"->Minus()
-                    else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
+                history = mainBinding.textViewHistory.text.toString()
+                currentResult = mainBinding.textViewResult.text.toString()
+
+                if (status == "equals") {
+                    operator = true
+                    history = onEqualDelete()
                 }
-                mainBinding.textViewHistory.text = history.plus("*")
-            }
-            status="Mul"
-            operator=false
-            number=null
-            dotControll=true
+
+                if (operator) {
+                    when (status) {
+                        "Mul" -> Mul()
+                        "Div" -> Divide()
+                        "plus" -> add()
+                        "minus" -> Minus()
+                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
+                    }
+                    mainBinding.textViewHistory.text = history.plus("*")
+                }
+                status = "Mul"
+                operator = false
+                number = null
+                dotControll = true
+
 
         }
 
         mainBinding.btnMinus.setOnClickListener{
-            history = mainBinding.textViewHistory.text.toString()
-            currentResult =  mainBinding.textViewResult.text.toString()
 
-            if(status=="equals") operator =true
+                history = mainBinding.textViewHistory.text.toString()
+                currentResult = mainBinding.textViewResult.text.toString()
 
-            if (operator){
-                when(status){
-                    "Mul"->Mul()
-                    "Div"->Divide()
-                    "plus"->add()
-                    "minus"->Minus()
-                    else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
+                if (status == "equals") {
+                    operator = true
+                    history = onEqualDelete()
                 }
-                mainBinding.textViewHistory.text = history.plus("-")
-            }
-            status="minus"
-            operator=false
-            number=null
-            dotControll=true
+
+                if (operator) {
+                    when (status) {
+                        "Mul" -> Mul()
+                        "Div" -> Divide()
+                        "plus" -> add()
+                        "minus" -> Minus()
+                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
+                    }
+                    mainBinding.textViewHistory.text = history.plus("-")
+                }
+                status = "minus"
+                operator = false
+                number = null
+                dotControll = true
 
         }
 
         mainBinding.btnPlus.setOnClickListener{
-            history = mainBinding.textViewHistory.text.toString()
-            currentResult =  mainBinding.textViewResult.text.toString()
 
-            if(status=="equals") operator =true
+                history = mainBinding.textViewHistory.text.toString()
+                currentResult = mainBinding.textViewResult.text.toString()
 
-            if (operator){
-                when(status){
-                    "Mul"->Mul()
-                    "Div"->Divide()
-                    "plus"->add()
-                    "minus"->Minus()
-
-                    else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
+                if (status == "equals") {
+                    operator = true
+                    history = onEqualDelete()
                 }
-                mainBinding.textViewHistory.text = history.plus("+")
-            }
-            status="plus"
-            operator=false
-            number=null
-            dotControll=true
+
+                if (operator) {
+                    when (status) {
+                        "Mul" -> Mul()
+                        "Div" -> Divide()
+                        "plus" -> add()
+                        "minus" -> Minus()
+
+                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
+                    }
+                    mainBinding.textViewHistory.text = history.plus("+")
+                }
+                status = "plus"
+                operator = false
+                number = null
+                dotControll = true
+
         }
 
         mainBinding.btnDot.setOnClickListener{
+            history= mainBinding.textViewHistory.text.toString()
             if (dotControll){
                 if (number==null) number = "0."
                 else number= "$number."
 
                 mainBinding.textViewResult.text = number
+                mainBinding.textViewHistory.text = history.plus(".")
             }
             dotControll=false
 
@@ -230,12 +274,17 @@ class MainActivity : AppCompatActivity() {
             }
             status = "equals"
             operator=false
-            dotControll=true
+            dotControll = !number!!.contains(".")
         }
 
     }
 
     fun onNumberClicked (clickedNum : String){
+        if (status!=null) onStart=false
+        if (onStart){
+            aC()
+            onStart=false
+        }
         if (status!="equals") {
             history = mainBinding.textViewHistory.text.toString()
             currentResult = clickedNum
@@ -307,6 +356,12 @@ class MainActivity : AppCompatActivity() {
         lastNumber= 0.0
         dotControll=true
 
+    }
+
+    fun onEqualDelete():String{
+        history=mainBinding.textViewHistory.text.toString()
+        var toLeave:String = history.split("=").last()
+        return toLeave
     }
 
 
