@@ -91,7 +91,10 @@ class MainActivity : AppCompatActivity() {
         mainBinding.btnDelete.setOnClickListener{
 
             number?.let{
-                if (it.length<=1){
+                if(it.length==0){
+                    mainBinding.textViewResult.text = "Cant delete anymore you fat lesbian"
+                }
+                if (it.length==1){
                     aC()
                 }
              number=it.substring(0,it.length-1)
@@ -242,6 +245,10 @@ class MainActivity : AppCompatActivity() {
             mainBinding.textViewHistory.text = history.plus(clickedNum)
 
             operator = true
+        }else
+        {
+            aC()
+            onNumberClicked(clickedNum)
         }
     }
 
