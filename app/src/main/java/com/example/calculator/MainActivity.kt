@@ -1,42 +1,44 @@
-package com.example.calculator
+package com.example.gpacalculator
 
-import android.annotation.SuppressLint
-import android.icu.text.DecimalFormat
 import android.os.Bundle
-import android.widget.Toast
+import android.view.View
+import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.calculator.databinding.ActivityMainBinding
+import androidx.core.widget.doOnTextChanged
+import com.example.gpacalculator.databinding.ActivityMainBinding
+
+
+
+
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var mainBinding: Activity
 
 
+    private lateinit var cs1Sem:Semester
 
-    lateinit var mainBinding:ActivityMainBinding
-    var number : String? = null
+    private var choosingCourse:Boolean = false
 
-    var firstNumber:Double = 0.0
+    private var choosingSemester:Boolean = false
 
-    var lastNumber:Double = 0.0
+    private var currentCourse:Course = Course.CS
 
-    var status:String? = null
+    private var currentSemester:Int = 1
 
-    var operator:Boolean = true
+    private lateinit var currentView:ConstraintLayout
 
-    var history : String = ""
+    private lateinit var currentSubjects:List<Subject>
 
-    var currentResult : String = ""
+    private lateinit var gradeList: List<EditText>
 
-    var dotControll : Boolean = true
-
-    var onStart:Boolean= true
+    private var subGradeMap: MutableMap<Subject, Float> = mapOf<Subject,Float>() as MutableMap<Subject, Float>
 
 
-    @SuppressLint("NewApi")
-    var myFormatter = DecimalFormat("######.######")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,320 +51,343 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        
 
 
-        mainBinding.textViewResult.text = "0"
-        mainBinding.textViewHistory.text="0"
 
+        currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+        cs1Sem = Semester(listOf(Subject.I2I,Subject.DS,Subject.I2CA,Subject.FOP,Subject.ENG),mainBinding.cs1SemesterLayout.cs1SemesterLayout)
+        currentSubjects = cs1Sem.subjects
+        gradeList = listOf(mainBinding.score1,mainBinding.score2,mainBinding.score3,mainBinding.score4,mainBinding.score5)
 
-        mainBinding.btnZero.setOnClickListener{
-            onNumberClicked("0")
-        }
-        mainBinding.btnOne.setOnClickListener{
-            onNumberClicked("1")
-        }
-        mainBinding.btnTwo.setOnClickListener{
-            onNumberClicked("2")
-        }
-        mainBinding.btnThree.setOnClickListener{
-            onNumberClicked("3")
-        }
-        mainBinding.btnFour.setOnClickListener{
-            onNumberClicked("4")
-        }
-        mainBinding.btnFive.setOnClickListener{
-            onNumberClicked("5")
-        }
-        mainBinding.btnSix.setOnClickListener{
-            onNumberClicked("6")
+        mainBinding.main.setOnClickListener{
+            choosingCourse = false
+            showCourses()
+            mainBinding.Gpa.text = calcGpa().toString()
         }
 
-        mainBinding.btnSeven.setOnClickListener{
-            onNumberClicked("7")
-        }
+        val regex = Regex("([1234567890])*")
 
-        mainBinding.btnEight.setOnClickListener{
-            onNumberClicked("8")
-        }
-
-        mainBinding.btnNine.setOnClickListener{
-            onNumberClicked("9")
-        }
-
-        mainBinding.btnAC.setOnClickListener{
-            aC()
-        }
-
-        mainBinding.btnDelete.setOnClickListener{
-            history = mainBinding.textViewHistory.text.toString()
-
-            if (status=="equals") {
-
-
-                    aC()
-//                    number = null
-
-
-            }else {
-
-                number?.let {
-
-
-                    number = it.substring(0, it.length - 1)
-                    mainBinding.textViewResult.text = number
-                    mainBinding.textViewHistory.text = history.substring(0, history.length - 1)
-                    dotControll = !number!!.contains(".")
-                    if (it.length==1) number=null
+        gradeList.forEach { editText ->
+            editText.doOnTextChanged { text, _, _, _ ->
+                if (!regex.matches(text.toString())) {
+                    // Show an error message instead of throwing an exception
+                    editText.error = "Invalid input"
                 }
-                if (number==null){
-
-                }
-                if (!operator){
-                    firstNumber = 0.0
-                    mainBinding.textViewHistory.text = history.substring(0, history.length - 1)
-                    operator=true
-                }
+                calcGpa()
             }
         }
 
-        mainBinding.btnDivive.setOnClickListener{
 
-
-
-                history = mainBinding.textViewHistory.text.toString()
-                currentResult = mainBinding.textViewResult.text.toString()
-
-                if (status == "equals") {
-                    operator = true
-                    history = onEqualDelete()
-                }
-
-
-                if (operator) {
-                    when (status) {
-                        "Mul" -> Mul()
-                        "Div" -> Divide()
-                        "plus" -> add()
-                        "minus" -> Minus()
-                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
-                    }
-                    mainBinding.textViewHistory.text = history.plus("/")
-                }
-                status = "Div"
-                operator = false
-                number = null
-                dotControll = true
-
-
+        mainBinding.chooseCourse.setOnClickListener {
+            choosingCourse = true
+            showCourses()
+            choosingCourse=!choosingCourse
         }
 
-        mainBinding.btnMul.setOnClickListener{
-
-
-                history = mainBinding.textViewHistory.text.toString()
-                currentResult = mainBinding.textViewResult.text.toString()
-
-                if (status == "equals") {
-                    operator = true
-                    history = onEqualDelete()
-                }
-
-                if (operator) {
-                    when (status) {
-                        "Mul" -> Mul()
-                        "Div" -> Divide()
-                        "plus" -> add()
-                        "minus" -> Minus()
-                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
-                    }
-                    mainBinding.textViewHistory.text = history.plus("*")
-                }
-                status = "Mul"
-                operator = false
-                number = null
-                dotControll = true
-
-
+        mainBinding.courseNum.setOnClickListener {
+            choosingSemester = true
+            showSemesters()
+            choosingSemester=!choosingSemester
         }
 
-        mainBinding.btnMinus.setOnClickListener{
-
-                history = mainBinding.textViewHistory.text.toString()
-                currentResult = mainBinding.textViewResult.text.toString()
-
-                if (status == "equals") {
-                    operator = true
-                    history = onEqualDelete()
-                }
-
-                if (operator) {
-                    when (status) {
-                        "Mul" -> Mul()
-                        "Div" -> Divide()
-                        "plus" -> add()
-                        "minus" -> Minus()
-                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
-                    }
-                    mainBinding.textViewHistory.text = history.plus("-")
-                }
-                status = "minus"
-                operator = false
-                number = null
-                dotControll = true
-
+        mainBinding.CompScience.setOnClickListener {
+            currentCourse = Course.CS
+            mainBinding.chooseCourse.text = mainBinding.CompScience.text
+            choosingCourse = false
+            showCourses()
+            showSemesterLayout()
         }
 
-        mainBinding.btnPlus.setOnClickListener{
-
-                history = mainBinding.textViewHistory.text.toString()
-                currentResult = mainBinding.textViewResult.text.toString()
-
-                if (status == "equals") {
-                    operator = true
-                    history = onEqualDelete()
-                }
-
-                if (operator) {
-                    when (status) {
-                        "Mul" -> Mul()
-                        "Div" -> Divide()
-                        "plus" -> add()
-                        "minus" -> Minus()
-
-                        else -> firstNumber = mainBinding.textViewResult.text.toString().toDouble()
-                    }
-                    mainBinding.textViewHistory.text = history.plus("+")
-                }
-                status = "plus"
-                operator = false
-                number = null
-                dotControll = true
-
+        mainBinding.Managemant.setOnClickListener {
+            currentCourse = Course.MANAGEMANT
+            mainBinding.chooseCourse.text = mainBinding.Managemant.text
+            choosingCourse = false
+            showCourses()
+            showSemesterLayout()
         }
 
-        mainBinding.btnDot.setOnClickListener{
-            history= mainBinding.textViewHistory.text.toString()
-            if (dotControll){
-                if (number==null) number = "0."
-                else number= "$number."
+        mainBinding.Math.setOnClickListener {
+            currentCourse = Course.MATH
+            mainBinding.chooseCourse.text = mainBinding.Math.text
+            choosingCourse = false
+            showCourses()
+            showSemesterLayout()
+        }
 
-                mainBinding.textViewResult.text = number
-                mainBinding.textViewHistory.text = history.plus(".")
+        mainBinding.semester1.setOnClickListener {
+            currentSemester=1
+            mainBinding.courseNum.text = mainBinding.semester1.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester2.setOnClickListener {
+            currentSemester=2
+            mainBinding.courseNum.text = mainBinding.semester2.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester3.setOnClickListener {
+            currentSemester=3
+            mainBinding.courseNum.text = mainBinding.semester3.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester4.setOnClickListener {
+            currentSemester=4
+            mainBinding.courseNum.text = mainBinding.semester4.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester5.setOnClickListener {
+            currentSemester=5
+            mainBinding.courseNum.text = mainBinding.semester5.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester6.setOnClickListener {
+            currentSemester=6
+            mainBinding.courseNum.text = mainBinding.semester6.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester7.setOnClickListener {
+            currentSemester=7
+            mainBinding.courseNum.text = mainBinding.semester7.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+        mainBinding.semester8.setOnClickListener {
+            currentSemester=8
+            mainBinding.courseNum.text = mainBinding.semester8.text
+            choosingSemester = false
+            showSemesters()
+            showSemesterLayout()
+        }
+
+
+    }
+
+
+    private fun showCourses(){
+        if (choosingCourse){
+            mainBinding.CompScience.visibility = View.VISIBLE
+            mainBinding.Managemant.visibility = View.VISIBLE
+            mainBinding.Math.visibility = View.VISIBLE
+        }
+        else{
+            mainBinding.CompScience.visibility = View.INVISIBLE
+            mainBinding.Managemant.visibility = View.INVISIBLE
+            mainBinding.Math.visibility = View.INVISIBLE
+        }
+        calcGpa()
+    }
+
+
+    private fun showSemesters(){
+        if (choosingSemester) {
+            mainBinding.semester1.visibility = View.VISIBLE
+            mainBinding.semester2.visibility = View.VISIBLE
+            mainBinding.semester3.visibility = View.VISIBLE
+            mainBinding.semester4.visibility = View.VISIBLE
+            mainBinding.semester5.visibility = View.VISIBLE
+            mainBinding.semester6.visibility = View.VISIBLE
+            mainBinding.semester7.visibility = View.VISIBLE
+            mainBinding.semester8.visibility = View.VISIBLE
+        }
+        else {
+            mainBinding.semester1.visibility = View.INVISIBLE
+            mainBinding.semester2.visibility = View.INVISIBLE
+            mainBinding.semester3.visibility = View.INVISIBLE
+            mainBinding.semester4.visibility = View.INVISIBLE
+            mainBinding.semester5.visibility = View.INVISIBLE
+            mainBinding.semester6.visibility = View.INVISIBLE
+            mainBinding.semester7.visibility = View.INVISIBLE
+            mainBinding.semester8.visibility = View.INVISIBLE
+        }
+        calcGpa()
+    }
+
+    private fun showSemesterLayout(){
+        currentView.visibility = View.INVISIBLE
+        when(currentSemester){
+            1 -> when(currentCourse){
+                Course.CS -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
             }
-            dotControll=false
-
-        }
-
-        mainBinding.btnEquals.setOnClickListener{
-
-            history = mainBinding.textViewHistory.text.toString()
-            currentResult =  mainBinding.textViewResult.text.toString()
-
-
-
-            if (operator){
-                when(status){
-                    "Mul"->Mul()
-                    "Div"->Divide()
-                    "plus"->add()
-                    "minus"->Minus()
-                    "equals"-> mainBinding.textViewHistory.text = history
-                    else ->firstNumber=mainBinding.textViewResult.text.toString().toDouble()
+            2 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
                 }
-                mainBinding.textViewHistory.text = history.plus("=").plus(mainBinding.textViewResult.text.toString())
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
             }
-            status = "equals"
-            operator=false
-            dotControll = !number!!.contains(".")
+            3 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+            }
+            4 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+            }
+            5 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+            }
+            6 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+            }
+            7 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+            }
+            8 -> when(currentCourse){
+                Course.CS -> mainBinding.cs1SemesterLayout.cs1SemesterLayout.visibility = View.VISIBLE
+                Course.MANAGEMANT -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+                Course.MATH -> {
+                    cs1Sem.view.visibility= View.VISIBLE
+                    currentSubjects = cs1Sem.subjects
+                    currentView = mainBinding.cs1SemesterLayout.cs1SemesterLayout
+                }
+            }
+
+        }
+
+        calcGpa()
+    }
+
+
+    private fun calcGpa():Float{
+        mapSubjects()
+
+        var gpSum = 0.0f
+        var creditSum = 0.0f
+        for (n in  subGradeMap.keys){
+            if(subGradeMap[n]==null) continue
+            if (subGradeMap[n]!! >=0.5){
+                creditSum+=n.credits
+                gpSum+=n.credits* subGradeMap[n]!!
+            }
+        }
+        if(creditSum<=0) return 0.0f
+
+        return gpSum/creditSum
+    }
+
+
+    private fun mapSubjects(){
+        for ((index, n) in currentSubjects.withIndex()){
+            subGradeMap[n] = gradeToGp()[index]
+
         }
 
     }
 
-    fun onNumberClicked (clickedNum : String){
-        if (status!=null) onStart=false
-        if (onStart){
-            aC()
-            onStart=false
-        }
-        if (status!="equals") {
-            history = mainBinding.textViewHistory.text.toString()
-            currentResult = clickedNum
-            if (number == null) {
-                number = clickedNum
-            } else number += clickedNum
 
-            mainBinding.textViewResult.text = number
-            mainBinding.textViewHistory.text = history.plus(clickedNum)
+    private fun gradeToGp():MutableList<Float>{
+        val gpList:MutableList<Float> = emptyList<Float>() as MutableList
+        for ((index, n) in gradeList.withIndex()){
+            val x = n.text.toString().toIntOrNull() ?: 0
+            if (x>=94) gpList.add(index,4.0F)
+            else if (91<=x) gpList.add(index,3.7f)
+            else if (88<=x) gpList.add(index,3.4f)
+            else if (85<=x) gpList.add(index,3.1f)
+            else if (81<=x) gpList.add(index,2.8f)
+            else if (78<=x) gpList.add(index,2.5f)
+            else if (74<=x) gpList.add(index,2.2f)
+            else if (71<=x) gpList.add(index,1.9f)
+            else if (68<=x) gpList.add(index,1.6f)
+            else if (64<=x) gpList.add(index,1.3f)
+            else if (61<=x) gpList.add(index,1.0f)
+            else if (56<=x) gpList.add(index,0.8f)
+            else if (51<=x) gpList.add(index,0.5f)
+            else  gpList.add(index,0.0f)
 
-            operator = true
-        }else
-        {
-            aC()
-            onNumberClicked(clickedNum)
-        }
-    }
-
-
-    @SuppressLint("NewApi")
-    fun add(){
-        lastNumber = mainBinding.textViewResult.text.toString().toDouble()
-
-        firstNumber+=lastNumber
-
-        mainBinding.textViewResult.text = myFormatter.format(firstNumber)
-    }
-
-    @SuppressLint("NewApi")
-    fun Minus(){
-        lastNumber = mainBinding.textViewResult.text.toString().toDouble()
-
-        firstNumber-=lastNumber
-
-        mainBinding.textViewResult.text = myFormatter.format(firstNumber)
-    }
-
-    @SuppressLint("NewApi")
-    fun Mul(){
-        lastNumber = mainBinding.textViewResult.text.toString().toDouble()
-
-        firstNumber*=lastNumber
-
-        mainBinding.textViewResult.text = myFormatter.format(firstNumber)
-    }
-
-    @SuppressLint("NewApi")
-    fun Divide(){
-        lastNumber = mainBinding.textViewResult.text.toString().toDouble()
-
-        if (lastNumber==0.0) {
-            Toast.makeText(applicationContext,"YOU are Gay",Toast.LENGTH_LONG).show()
-            mainBinding.textViewResult.text = "can't divide by zero retard, also u gay"
-            return
         }
 
-        firstNumber/=lastNumber
-
-        mainBinding.textViewResult.text = myFormatter.format(firstNumber)
+        return gpList
     }
 
 
-    fun aC(){
-        number=null
-        status=null
-        mainBinding.textViewResult.text="0"
-        mainBinding.textViewHistory.text = ""
-        firstNumber=0.0
-        lastNumber= 0.0
-        dotControll=true
 
-    }
 
-    fun onEqualDelete():String{
-        history=mainBinding.textViewHistory.text.toString()
-        var toLeave:String = history.split("=").last()
-        return toLeave
-    }
+
+
 
 
 }
